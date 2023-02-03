@@ -17,22 +17,24 @@ pipeline {
                        }
                     }
                 }
-               }
             }
         }
-        stage('Deploy') {
+        stage('deploy') {
             steps {
                 script {
-                    if (params.ENV == "release") {
-               	 withCredentials([file(credentialsId: 'k8s-conf', variable: 'KUBECONFIG')]) {
-		          sh """
-		          mv Deployment/deploy.yaml Deployment/deploy.yaml.tmp
-		          cat Deployment/deploy.yaml.tmp | envsubst > Deployment/deploy.yaml
-		          rm -f Deployment/deploy.yaml.tmp
-		          kubectl apply -f Deployment --kubeconfig=${KUBECONFIG}
-		          """
-               	}
-    		}
+                    if (params.ENV == "dev" || params.ENV == "test" || params.ENV == "prod") {
+                        withCredentials([file(credentialsId: 'k8s-conf', variable: 'KUBECONFIG')]) {
+                            sh """
+                                  export BUILD_NUMBER=\$(cat ../bakehouse-build-number.txt)
+                                  mv Deployment/deploy.yaml Deployment/deploy.yaml.tmp
+                                  cat Deployment/deploy.yaml.tmp | envsubst > Deployment/deploy.yaml
+                                  rm -f Deployment/deploy.yaml.tmp
+                                  kubectl apply -f Deployment --kubeconfig=${KUBECONFIG}
+                            """
+                        }   
+                    }       
+                }
+            }
         }
     }
 }
