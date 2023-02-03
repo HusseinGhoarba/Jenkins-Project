@@ -7,12 +7,13 @@ pipeline {
         stage('Build') {
             steps {
                 script {
-                    if (params.ENV == "dev" || params.ENV == "test" || params.ENV == "prod") {
+                    if (params.ENV == "release" ) {
                        withCredentials([usernamePassword(credentialsId: 'hu-dockerhub', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
                            sh """
                                 docker login -u $USERNAME -p $PASSWORD
                                 docker build -t husseinghoraba/bakehouse:${BUILD_NUMBER} .
                                 docker push husseinghoraba/bakehouse:${BUILD_NUMBER}
+                                echo ${BUILD_NUMBER} > ../bakehouse-build-number.txt
                            """
                        }
                     }
